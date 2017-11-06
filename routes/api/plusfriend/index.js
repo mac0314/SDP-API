@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
+var messageController = require('../../../controllers/api/message');
+
 /******************************
  *          route             *
  ******************************/
@@ -10,6 +12,7 @@ var router = express.Router();
 router.get('/keyboard', function(req, res, next){
 	var resultObject = new Object();
 
+	/*
 	resultObject.type = "buttons";
 
 	//var buttonArray = ["1", "2", "3"];
@@ -20,6 +23,7 @@ router.get('/keyboard', function(req, res, next){
 	buttonArray.push("뭘 도와주는데?");
 
 	resultObject.buttons = buttonArray;
+	*/
 
 	res.json(resultObject);
 });
@@ -35,54 +39,19 @@ router.post('/message', function(req, res, next){
 	//console.log("content : " + content);
 
 	var resultObject = new Object();
-	var messageObject = new Object();
-	var text = "";
-	var isTherePhoto = false;
-	var isThereLink = false;
-	var isThereNextMessage = false;
 
-	if(content == "안녕~"){
-		text = "안녕하세요. ‘사만다’입니다. 저는 문맥을 기억하는 봇입니다.";
-	}else if(content == "뭘 도와주는데?"){
-		text = "당신의 관심사에 대한 정보를 알려줄 수 있습니다.";
-	}else if(content == "자세히 알려줘"){
-		text = "http://13.124.56.85:12000";
-	}
+	var textObject = new Object({});
+	textObject.text = content;
 
-	messageObject.text = text;
+	messageController.getConversationResponse(textObject, null, function(error, data){
+		var messageObject = new Object();
 
-	if(isTherePhoto){
-		var photoObject = new Object();
+		messageObject.text = data.output.text;
 
-		var url = "https://photo.src";
-		var width = 640;
-		var height = 480;
+		resultObject.message = messageObject;
 
-		photoObject.url = url;
-		photoObject.width = width;
-		photoObject.height = height;
-		messageObject.photo =  photoObject;
-	}
-
-	resultObject.message = messageObject;
-
-	if(isThereNextMessage){
-		var keyboardObject = new Object();
-
-		keyboardObject.type = "buttons";
-
-		var buttonArray = new Array();
-
-  	buttonArray.push("안녕~");
-  	buttonArray.push("자세히 알려줘");
-  	buttonArray.push("뭘 도와주는데?");
-
-		keyboardObject.buttons = buttonArray;
-
-		resultObject.keyboard = keyboardObject;
-	}
-
-	res.json(resultObject);
+		res.json(resultObject);
+	});
 });
 
 

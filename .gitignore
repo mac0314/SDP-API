@@ -85,6 +85,7 @@ ssl/
 .config/
 config/
 .elasticbeanstalk/
+.env
 
 # Module directory #
 ####################

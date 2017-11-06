@@ -7,6 +7,8 @@ var bodyParser = require('body-parser');
 
 var config = require('config.json')('./config/config.json');
 
+require('dotenv').config({silent: true});
+
 var morgan = require('morgan');
 
 var fs = require('fs');
