@@ -15,6 +15,7 @@
     "url": "https://github.com/mac0314/dasd-api/issues"
   },
   "dependencies": {
+    "async": "^2.6.0",
     "body-parser": "~1.15.1",
     "config.json": "0.0.4",
     "cookie-parser": "~1.4.3",
