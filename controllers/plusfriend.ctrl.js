@@ -2,6 +2,7 @@
 var async = require('async');
 
 var messageController = require('./watson/conversation.ctrl');
+var WTController = require('./scraping/webtoon.ctrl');
 
 var userModel = require('../models/user.model');
 var chatRoomModel = require('../models/chat_room.model');
@@ -57,12 +58,15 @@ exports.dialogize = function(userKey, type, content, callback){
 };
 
 function makeResponse(content, text, callback){
+	console.log("makeResponse");
 	var resultObject = new Object({});
 
 	var messageObject = new Object({});
 	var keyboardObject = new Object({});
 
 	var response = text;
+
+	console.log(content, text);
 
 	if(content == "사만다, 넌 누구니?"){
 		text = "안녕하세요. 저는 대화의 문맥을 기억하는 봇입니다.";
@@ -78,14 +82,28 @@ function makeResponse(content, text, callback){
 		messageObject.message_button = buttonObject;
 	}
 
-	messageObject.text = text;
+	if(text.indexOf("user/search/") !== -1){
+		var genreName = text.split("user/search/")[1];
+		WTController.requestDataByGenre(genreName, function(error, parsingObject){
+			messageObject.text = parsingObject.titles.join(', ') + "이 있습니다.";
+		});
 
-	keyboardObject.type = "text";
+		keyboardObject.type = "text";
 
-	resultObject.message = messageObject;
-	resultObject.keyboard = keyboardObject;
+		resultObject.message = messageObject;
+		resultObject.keyboard = keyboardObject;
 
-	callback(null, resultObject);
+		callback(null, resultObject);
+	}else{
+		messageObject.text = text;
+
+		keyboardObject.type = "text";
+
+		resultObject.message = messageObject;
+		resultObject.keyboard = keyboardObject;
+
+		callback(null, resultObject);
+	}
 }
 
 exports.addFriend = function(userKey, callback){

@@ -71,11 +71,13 @@ app.use(express.static(path.join(__dirname, 'dist')));
 var index = require('./routes/index');
 
 var plusfriend = require('./routes/api/plusfriend/index');
+var webtoon = require('./routes/api/webtoon/index');
 
 // Web page route
 app.use('/', index);
 
 app.use('/plusfriend', plusfriend);
+app.use('/webtoon', webtoon);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
