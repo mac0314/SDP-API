@@ -85,23 +85,3 @@ function doAction(data, action){
 
   return data;
 }
-
-/**
- * 회의실의 예약 가능 여부를 체크하는 함수
- * @param  {Object} data : response object
- * @param  {Object} action
- */
-function checkAvailability(data, action){
-   //TODO
-   return data;
-}
-
-/**
- * Make reservation
- * @param  {Object} data : response object
- * @param  {Object} action
- */
-function confirmReservation(data, action){
-   //TODO
-   return data;
-}
