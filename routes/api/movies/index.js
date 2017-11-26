@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var WTController = require('../../../controllers/scraping/webtoon.ctrl');
+var MVController = require('../../../controllers/scraping/movies.ctrl');
 
 /******************************
  *          route             *
@@ -12,9 +12,6 @@ router.get('/', function(req, res, next){
 
   console.log(genreName);
 
-	WTController.requestDataByGenre(genreName, function(error, resultObject){
-		res.json(resultObject);
-	});
 });
 
 

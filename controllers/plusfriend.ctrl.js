@@ -2,7 +2,7 @@
 var async = require('async');
 
 var messageController = require('./watson/conversation.ctrl');
-var WTController = require('./scraping/webtoon.ctrl');
+var WTController = require('./scraping/webtoons.ctrl');
 
 var userModel = require('../models/user.model');
 var chatRoomModel = require('../models/chat_room.model');
