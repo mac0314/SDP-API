@@ -46,3 +46,67 @@ exports.requestData = function (typeName, queryName, callback){
       callback(null, resultObject);
   });
 };
+
+exports.crawlingWebtoonData = function(callback){
+  var resultObject = new Object({});
+  var url = "http://comic.naver.com/webtoon/artist.nhn";
+
+  request(url, function (error, response, html) {
+      var $ = cheerio.load(html);
+
+      // Object list
+      var artistList = [];
+
+      $('div.work_list').children('h5').each(function(i, elem){
+        var artistObject = new Object({});
+
+        var artistName = $(this).text();
+        var webtoonList = [];
+
+        $(this).next().children('li').each(function(i, elem){
+          var webtoonObject = new Object({});
+
+          webtoonObject.title = $(this).children('div').children('a').children('img').attr('alt');
+          webtoonObject.thumbnail = $(this).children('div').children('a').children('img').attr('src');
+
+          webtoonList.push(webtoonObject);
+        });
+
+        artistObject.name = artistName;
+        artistObject.webtoonList = webtoonList;
+
+        artistList.push(artistObject);
+      });
+
+      resultObject.artistList = artistList;
+
+/*
+      // List style
+      const namesList = [];
+      const titlesList = [];
+      const thumbnailsList = [];
+
+      // artist name list
+      $('div.work_list').children('h5').each(function(i, elem){
+        namesList[i] = $(this).text();
+
+        var webtoonObject = new Object({});
+
+        titles = [];
+        thumbnails = [];
+
+        $(this).next().children('li').each(function(i, elem){
+          titles.push($(this).children('div').children('a').children('img').attr('alt'));
+          thumbnails.push($(this).children('div').children('a').children('img').attr('src'));
+        });
+        titlesList.push(titles);
+        thumbnailsList.push(thumbnails);
+      });
+
+      resultObject.namesList = namesList;
+      resultObject.titlesList = titlesList;
+      resultObject.thumbnailsList = thumbnailsList;
+*/
+      callback(null, resultObject);
+  });
+};

@@ -70,7 +70,6 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // routes module
 var index = require('./routes/index');
 
-var movies = require('./routes/api/movies/index');
 var plusfriend = require('./routes/api/plusfriend/index');
 var webtoons = require('./routes/api/webtoons/index');
 
@@ -78,7 +77,6 @@ var webtoons = require('./routes/api/webtoons/index');
 app.use('/', index);
 
 // API routes
-app.use('/movies', movies);
 app.use('/plusfriend', plusfriend);
 app.use('/webtoons', webtoons);
 

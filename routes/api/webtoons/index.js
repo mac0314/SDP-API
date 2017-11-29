@@ -58,4 +58,11 @@ router.get('/finish', function(req, res, next){
 	});
 });
 
+router.get('/crawling', function(req, res, next){
+
+  WTController.crawlingWebtoonData(function(error, resultObject){
+		res.json(resultObject);
+	});
+});
+
 module.exports = router;
