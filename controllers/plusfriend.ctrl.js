@@ -82,18 +82,43 @@ function makeResponse(content, text, callback){
 		messageObject.message_button = buttonObject;
 	}
 
-	if(text.indexOf("user/search/") !== -1){
-		var genreName = text.split("user/search/")[1];
-		WTController.requestDataByGenre(genreName, function(error, parsingObject){
-			messageObject.text = parsingObject.titles.join(', ') + "이 있습니다.";
+	if(text.indexOf("webtoons/") !== -1){
+		var textArray = text.split("/");
+		var typeName = textArray[1];
+		var queryName = textArray[2];
+
+		WTController.requestData(typeName, queryName, function(error, parsingObject){
+			if(typeName == "genre"){
+				messageObject.text = parsingObject.titles.join(', ') + "이 있습니다.";
+
+			}else if(typeName == "titles"){
+				// TODO modify model code
+				// TEST data
+				var photoObject = new Object({});
+
+				photoObject.url = "http://thumb.comic.naver.net/webtoon/637931/thumbnail/thumbnail_IMAG10_064f190a-2f70-4149-b9af-760bfdede057.jpg";
+				photoObject.width = 640;
+				photoObject.height = 480;
+
+				var buttonObject = new Object({});
+
+				buttonObject.label = "여기요";
+				buttonObject.url = "http://comic.naver.com/webtoon/list.nhn?titleId=637931";
+
+
+				messageObject.text = "전자오락수호대";
+				messageObject.photo = photoObject;
+				messageObject.message_button = buttonObject;
+			}
+
+			keyboardObject.type = "text";
+
+			resultObject.message = messageObject;
+			resultObject.keyboard = keyboardObject;
+
+			callback(null, resultObject);
 		});
 
-		keyboardObject.type = "text";
-
-		resultObject.message = messageObject;
-		resultObject.keyboard = keyboardObject;
-
-		callback(null, resultObject);
 	}else{
 		messageObject.text = text;
 

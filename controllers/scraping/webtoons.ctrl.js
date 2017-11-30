@@ -68,6 +68,7 @@ exports.crawlingWebtoonData = function(callback){
 
           webtoonObject.title = $(this).children('div').children('a').children('img').attr('alt');
           webtoonObject.thumbnail = $(this).children('div').children('a').children('img').attr('src');
+          webtoonObject.link = "http://comic.naver.com" + $(this).children('div').children('a').attr('href');
 
           webtoonList.push(webtoonObject);
         });
@@ -85,6 +86,7 @@ exports.crawlingWebtoonData = function(callback){
       const namesList = [];
       const titlesList = [];
       const thumbnailsList = [];
+      const linksList = [];
 
       // artist name list
       $('div.work_list').children('h5').each(function(i, elem){
@@ -92,15 +94,18 @@ exports.crawlingWebtoonData = function(callback){
 
         var webtoonObject = new Object({});
 
-        titles = [];
-        thumbnails = [];
+        var titles = [];
+        var thumbnails = [];
+        var links = [];
 
         $(this).next().children('li').each(function(i, elem){
           titles.push($(this).children('div').children('a').children('img').attr('alt'));
           thumbnails.push($(this).children('div').children('a').children('img').attr('src'));
+          links.push("http://comic.naver.com" + $(this).children('div').children('a').attr('href'));
         });
         titlesList.push(titles);
         thumbnailsList.push(thumbnails);
+        linksList.push(links);
       });
 
       resultObject.namesList = namesList;
