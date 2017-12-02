@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 var WTController = require('../../../controllers/scraping/webtoons.ctrl');
+var WTModel = require('../../../models/webtoons.model');
 
 /******************************
  *          route             *
@@ -59,9 +60,24 @@ router.get('/finish', function(req, res, next){
 });
 
 router.get('/crawling', function(req, res, next){
-
   WTController.crawlingWebtoonData(function(error, resultObject){
-		res.json(resultObject);
+    res.json(resultObject);
+	});
+});
+
+router.get('/writers/:writerName', function(req, res, next){
+  var writerName = req.params.writerName;
+
+  WTModel.loadWebtoonByWriter(writerName, function(error, resultObject){
+    res.json(resultObject);
+	});
+});
+
+router.get('/titles/:titleName', function(req, res, next){
+  var titleName = req.params.titleName;
+
+  WTModel.loadWebtoonByTitle(titleName, function(error, resultObject){
+    res.json(resultObject);
 	});
 });
 

@@ -35,6 +35,8 @@ router.post('/message', function(req, res, next){
 router.post('/friend', function(req, res, next){
 	var userKey = req.body.user_key;
 
+	PFController.initializeUser(userKey);
+
   console.log("userKey : " + userKey);
 
 	PFController.addFriend(userKey, function(error, resultObject){

@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-var Conversation = require('watson-developer-cloud/conversation/v1'); // watson sdk
 var config = require('config.json')('./config/config.json');
 
+var Conversation = require('watson-developer-cloud/conversation/v1'); // watson sdk
 // Create a Service Wrapper
 var conversation = new Conversation(config.conversation);
 
+var messageModel = require('../../models/message.model');
 
-exports.getConversationResponse = function(message, context, callback){
+exports.getConversationResponse = function(userKey, message, context, callback){
+  console.log("getConversationResponse");
   var payload = {
     workspace_id: process.env.WORKSPACE_ID,
     context: context || {},
@@ -30,11 +31,13 @@ exports.getConversationResponse = function(message, context, callback){
 
   payload = preProcess(payload);
 
+  console.log("payload : ", payload);
+
   conversation.message(payload, function(error, data) {
     if(error){
       callback(true, error);
     }else{
-      callback(null, postProcess(data));
+      callback(null, postProcess(userKey, data));
     }
   });
 };
@@ -44,6 +47,7 @@ exports.getConversationResponse = function(message, context, callback){
 * @param  {Object} user input
 */
 function preProcess(payload, callback){
+  console.log("preProcess");
   var inputText = payload.input.text;
   console.log("User Input : " + inputText);
   console.log("Processed Input : " + inputText);
@@ -57,9 +61,19 @@ function preProcess(payload, callback){
  * @param  {Object} watson response
  */
 
-function postProcess(response){
+function postProcess(userKey, response){
+  console.log("postProcess");
+  console.log(response);
   console.log("Conversation Output : " + response.output.text);
   console.log("--------------------------------------------------");
+  console.log(response.context);
+
+  messageModel.saveDialogContext(userKey, response.context, function(error, result){
+
+  });
+  // TODO check error
+  // 비동기 방식의 문제인지 위의 함수 안에 넣으면 정상적으로 실행되지 않았다.
+  // response가 undefined로 반환된다.
   if(response.context && response.context.action){
     return doAction(response, response.context.action);
   }
@@ -74,11 +88,11 @@ function postProcess(response){
 function doAction(data, action){
   console.log("Action : " + action.command);
   switch(action.command){
-    case "check-availability":
-      return checkAvailability(data, action);
+    case "load-homepage":
+      return data;
       break;
-    case "confirm-reservation":
-      return confirmReservation(data, action);
+    case "load-conversation":
+      return data;
       break;
     default: console.log("Command not supported.")
   }

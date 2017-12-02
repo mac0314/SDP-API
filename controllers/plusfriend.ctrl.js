@@ -1,12 +1,20 @@
 
 var async = require('async');
 
-var messageController = require('./watson/conversation.ctrl');
+var config = require('config.json')('./config/config.json');
+
+var redis = require("redis");
+var redisClient = redis.createClient(config.redis.port, config.redis.host);
+//redisClient.auth(config.redis.password);
+var isEmpty = require('../js/is_empty');
+
+var convController = require('./watson/conversation.ctrl');
 var WTController = require('./scraping/webtoons.ctrl');
 
 var userModel = require('../models/user.model');
 var chatRoomModel = require('../models/chat_room.model');
 var messageModel = require('../models/message.model');
+var webtoonModel = require('../models/webtoons.model');
 
 exports.loadKeyborad = function(callback){
 	var resultObject = new Object({});
@@ -27,24 +35,39 @@ exports.loadKeyborad = function(callback){
 };
 
 exports.dialogize = function(userKey, type, content, callback){
+	console.log("dialogize");
 	var textObject = new Object({});
 	textObject.text = content;
-
-	var watsonData = "";
 
 	async.parallel({
 		requestDB: function(callback){
 			messageModel.addRequestMessage(userKey, type, content, function(error, data){
+				//console.log("addRequestMessage");
 				callback(null, data);
 			});
 		},
 		response: function(callback){
-			messageController.getConversationResponse(textObject, null, function(error, data){
-				watsonData = data.output.text[0];
+			console.log("response");
+			messageModel.getWatsonFlag(userKey, function(error, watsonFlag){
+				if(watsonFlag){
+					messageModel.loadDialogContext(userKey, function(error, context){
+						convController.getConversationResponse(userKey, textObject, context, function(error, data){
+							watsonData = data.output.text[0];
 
-				makeResponse(content, watsonData, function(error, resultObject){
-					callback(null, resultObject);
-				});
+							makeResponse(userKey, content, watsonData, function(error, resultObject){
+								callback(null, resultObject);
+							});
+						});
+					});
+				}else{
+					messageModel.setWatsonFlag(userKey, true);
+
+					//watsonData = "webtoons/writers/" + content;
+
+					makeResponse(userKey, content, watsonData, function(error, resultObject){
+						callback(null, resultObject);
+					});
+				}
 			});
 		}
 	}, function(error, results){
@@ -57,67 +80,113 @@ exports.dialogize = function(userKey, type, content, callback){
 	});
 };
 
-function makeResponse(content, text, callback){
+function makeResponse(userKey, content, text, callback){
 	console.log("makeResponse");
 	var resultObject = new Object({});
 
 	var messageObject = new Object({});
 	var keyboardObject = new Object({});
 
-	var response = text;
-
 	console.log(content, text);
-
-	if(content == "사만다, 넌 누구니?"){
-		text = "안녕하세요. 저는 대화의 문맥을 기억하는 봇입니다.";
-	}else if(content == "사만다, 넌 어떻게 도와줄 수 있지?"){
-		text = "당신의 관심사에 대한 정보를 알려줄 수 있습니다.";
-	}else if(content == "사만다, 너에 대해 더 알고 싶어"){
-		text = "영광이에요!";
-
-		var buttonObject = new Object({});
-		buttonObject.label = "공식 홈페이지 링크";
-		buttonObject.url = "http://13.124.56.85:12000";
-
-		messageObject.message_button = buttonObject;
-	}
 
 	if(text.indexOf("webtoons/") !== -1){
 		var textArray = text.split("/");
 		var typeName = textArray[1];
 		var queryName = textArray[2];
 
-		WTController.requestData(typeName, queryName, function(error, parsingObject){
-			if(typeName == "genre"){
-				messageObject.text = parsingObject.titles.join(', ') + "이 있습니다.";
+		if(typeName == "titles"){
+			messageModel.setWatsonFlag(userKey, false);
 
-			}else if(typeName == "titles"){
-				// TODO modify model code
-				// TEST data
+			webtoonModel.loadWebtoonByWriter(queryName, function(error, webtoonObject){
 				var photoObject = new Object({});
 
-				photoObject.url = "http://thumb.comic.naver.net/webtoon/637931/thumbnail/thumbnail_IMAG10_064f190a-2f70-4149-b9af-760bfdede057.jpg";
-				photoObject.width = 640;
-				photoObject.height = 480;
+				photoObject.url = webtoonObject.thumbnail;
+				photoObject.width = 320;
+				photoObject.height = 240;
 
 				var buttonObject = new Object({});
 
-				buttonObject.label = "여기요";
-				buttonObject.url = "http://comic.naver.com/webtoon/list.nhn?titleId=637931";
+				buttonObject.label = "링크";
+				buttonObject.url = webtoonObject.link;
 
 
-				messageObject.text = "전자오락수호대";
+				messageObject.text = webtoonObject.title + " 작품의 정보입니다!";
 				messageObject.photo = photoObject;
 				messageObject.message_button = buttonObject;
-			}
 
-			keyboardObject.type = "text";
+				keyboardObject.type = "text";
 
-			resultObject.message = messageObject;
-			resultObject.keyboard = keyboardObject;
+				resultObject.message = messageObject;
+				resultObject.keyboard = keyboardObject;
 
-			callback(null, resultObject);
-		});
+				callback(null, resultObject);
+			});
+		}else if(typeName == "writers"){
+			
+			webtoonModel.loadWebtoonByWriter(queryName, function(error, webtoonObject){
+				console.log(webtoonObject);
+				console.log(isEmpty.isEmpty(webtoonObject));
+				if(isEmpty.isEmpty(webtoonObject)){
+					messageObject.text = "해당 작가는 리스트에 없네요..ㅎㅎ"
+				}else{
+					var photoObject = new Object({});
+
+					photoObject.url = webtoonObject.thumbnail;
+					photoObject.width = 320;
+					photoObject.height = 240;
+
+					var buttonObject = new Object({});
+
+					buttonObject.label = "링크";
+					buttonObject.url = webtoonObject.link;
+
+
+					messageObject.text = webtoonObject.writer + " 작가님의 작품 '" + webtoonObject.title + "'를 추천해요!";
+					messageObject.photo = photoObject;
+					messageObject.message_button = buttonObject;
+				}
+
+				keyboardObject.type = "text";
+
+				resultObject.message = messageObject;
+				resultObject.keyboard = keyboardObject;
+
+
+				messageModel.setWatsonFlag(userKey, false);
+
+				callback(null, resultObject);
+			});
+		}else{
+			messageModel.setWatsonFlag(userKey, true);
+
+			WTController.requestData(typeName, queryName, function(error, webtoonObject){
+				var photoObject = new Object({});
+
+				photoObject.url = webtoonObject.thumbnail;
+				photoObject.width = 320;
+				photoObject.height = 240;
+
+				var buttonObject = new Object({});
+
+				buttonObject.label = "링크";
+				buttonObject.url = webtoonObject.link;
+
+
+				messageObject.photo = photoObject;
+				messageObject.message_button = buttonObject;
+
+				messageObject.text = "관련 작품에는 " + webtoonObject.title + "이 있어요!";
+
+				keyboardObject.type = "text";
+
+				resultObject.message = messageObject;
+				resultObject.keyboard = keyboardObject;
+
+				callback(null, resultObject);
+			});
+		}
+
+
 
 	}else{
 		messageObject.text = text;
@@ -155,3 +224,9 @@ exports.leaveChatRoom = function(userKey, callback){
 		callback(error, resultObject);
 	});
 };
+
+exports.initializeUser = function(userKey){
+	messageModel.setWatsonFlag(userKey, true);
+
+	return true;
+}

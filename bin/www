@@ -42,17 +42,22 @@ if(cluster.isMaster) {
     console.log("\t" + global.title + " start!\n");
     console.log('CPU Count:', cpuCount);
 
+    // TODO change this part
+    // TEST data
+    cpuCount = 1;
+
     for(var i = 0; i < cpuCount; i++) {
         worker[i] = cluster.fork();
     }
 
     // sec, min, hour, day of month, month, day of week
-    new CronJob('50 * * * * *',//'00 00 04 * * 0-6',
+    // Execute every day at 4am.
+    new CronJob('00 00 04 * * 0-6',
     function() {
       console.log('Load webtoon data');
 
       WTController.crawlingWebtoonData(function(error, resultObject){
-
+        console.log(resultObject);
       });
     }, null, true, 'Asia/Seoul');
 

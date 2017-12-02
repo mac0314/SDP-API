@@ -4,6 +4,8 @@ var cheerio = require('cheerio');
 
 var urlencode = require('urlencode');
 
+var WTModel = require('../../models/scraping.model');
+
 
 exports.requestData = function (typeName, queryName, callback){
   console.log("requestData");
@@ -26,22 +28,27 @@ exports.requestData = function (typeName, queryName, callback){
 
   var url = "http://comic.naver.com/webtoon/" + query;
 
-  console.log(url);
-
-  resultObject.url = url;
+  //console.log(url);
 
   request(url, function (error, response, html) {
       var $ = cheerio.load(html);
 
       const titles = [];
+      const links = [];
+      const thumbnails = [];
 
       $('ul.img_list').children().each(function(i, elem){
         titles[i] = $(this).children('dl').children().find("a").attr("title");
-
+        thumbnails[i] = $(this).children('div').children().find("img").attr("src");
+        links[i] = "http://comic.naver.com" + $(this).children('dl').children().find("a").attr("href");
       });
+      console.log(thumbnails.join[0]);
 
-      resultObject.titles = titles;
-      console.log(titles.join(', '));
+      var idx = Math.floor(Math.random() * titles.length);
+
+      resultObject.title = titles[idx];
+      resultObject.thumbnail = thumbnails[idx];
+      resultObject.link = links[idx];
 
       callback(null, resultObject);
   });
@@ -55,12 +62,12 @@ exports.crawlingWebtoonData = function(callback){
       var $ = cheerio.load(html);
 
       // Object list
-      var artistList = [];
+      var dataList = [];
 
       $('div.work_list').children('h5').each(function(i, elem){
-        var artistObject = new Object({});
+        var writerObject = new Object({});
 
-        var artistName = $(this).text();
+        var writerName = $(this).text();
         var webtoonList = [];
 
         $(this).next().children('li').each(function(i, elem){
@@ -73,45 +80,17 @@ exports.crawlingWebtoonData = function(callback){
           webtoonList.push(webtoonObject);
         });
 
-        artistObject.name = artistName;
-        artistObject.webtoonList = webtoonList;
+        writerObject.name = writerName;
+        writerObject.webtoonList = webtoonList;
 
-        artistList.push(artistObject);
+        dataList.push(writerObject);
       });
 
-      resultObject.artistList = artistList;
+      resultObject.dataList = dataList;
 
-/*
-      // List style
-      const namesList = [];
-      const titlesList = [];
-      const thumbnailsList = [];
-      const linksList = [];
-
-      // artist name list
-      $('div.work_list').children('h5').each(function(i, elem){
-        namesList[i] = $(this).text();
-
-        var webtoonObject = new Object({});
-
-        var titles = [];
-        var thumbnails = [];
-        var links = [];
-
-        $(this).next().children('li').each(function(i, elem){
-          titles.push($(this).children('div').children('a').children('img').attr('alt'));
-          thumbnails.push($(this).children('div').children('a').children('img').attr('src'));
-          links.push("http://comic.naver.com" + $(this).children('div').children('a').attr('href'));
-        });
-        titlesList.push(titles);
-        thumbnailsList.push(thumbnails);
-        linksList.push(links);
+      WTModel.addWebtoondata(resultObject, function(error, resultObject){
+        callback(null, resultObject);
       });
 
-      resultObject.namesList = namesList;
-      resultObject.titlesList = titlesList;
-      resultObject.thumbnailsList = thumbnailsList;
-*/
-      callback(null, resultObject);
   });
 };
