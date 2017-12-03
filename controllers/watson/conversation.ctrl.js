@@ -65,6 +65,7 @@ function postProcess(userKey, response){
   console.log("postProcess");
   //console.log(response);
   console.log("Conversation Output : " + response.output.text);
+  //console.log(Object.keys(response.output.text));
   console.log("--------------------------------------------------");
   //console.log(response.context);
 

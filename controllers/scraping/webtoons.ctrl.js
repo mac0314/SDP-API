@@ -17,11 +17,11 @@ exports.requestData = function (typeName, queryName, callback){
     query = "genre.nhn?genre=" + queryName;
   }else if(typeName === "weekday"){
     query = "weekdayList.nhn?week=" + queryName;
-  }else if(typeName === "creationList"){
+  }else if(typeName === "consonant"){
     query = "creationList.nhn?prefix=" + urlencode(queryName);
   }else if(typeName === "period"){
     query = "period.nhn?period=" + queryName;
-  }else if(typeName === "finish"){
+  }else if(typeName === "end"){
     query = "finish.nhn";
   }
 

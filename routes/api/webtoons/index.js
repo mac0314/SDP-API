@@ -29,12 +29,12 @@ router.get('/weekday', function(req, res, next){
 	});
 });
 
-router.get('/creationList', function(req, res, next){
+router.get('/consonant', function(req, res, next){
   var prefix = req.query.prefix;
 
   console.log(prefix);
 
-  WTController.requestData("creationList", prefix, function(error, resultObject){
+  WTController.requestData("consonant", prefix, function(error, resultObject){
 		res.json(resultObject);
 	});
 });
@@ -49,12 +49,12 @@ router.get('/period', function(req, res, next){
 	});
 });
 
-router.get('/finish', function(req, res, next){
-  var finish = req.query.finish;
+router.get('/end', function(req, res, next){
+  var end = req.query.end;
 
-  console.log(finish);
+  console.log(end);
 
-  WTController.requestData("finish", finish, function(error, resultObject){
+  WTController.requestData("end", end, function(error, resultObject){
 		res.json(resultObject);
 	});
 });
