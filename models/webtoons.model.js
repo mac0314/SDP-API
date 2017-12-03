@@ -33,7 +33,9 @@ exports.loadWebtoonByTitle = function(titleName, callback){
 
   var sqlParams = [titleName];
 
-  queryModel.request("select", modelLog, sql, sqlParams, function(error, resultObject){
+  queryModel.request("select", modelLog, sql, sqlParams, function(error, webtoonObject){
+    var resultObject = webtoonObject.data[0];
+
     callback(error, resultObject);
   });
 };

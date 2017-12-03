@@ -31,7 +31,7 @@ exports.getConversationResponse = function(userKey, message, context, callback){
 
   payload = preProcess(payload);
 
-  console.log("payload : ", payload);
+  //console.log("payload : ", payload);
 
   conversation.message(payload, function(error, data) {
     if(error){
@@ -63,10 +63,10 @@ function preProcess(payload, callback){
 
 function postProcess(userKey, response){
   console.log("postProcess");
-  console.log(response);
+  //console.log(response);
   console.log("Conversation Output : " + response.output.text);
   console.log("--------------------------------------------------");
-  console.log(response.context);
+  //console.log(response.context);
 
   messageModel.saveDialogContext(userKey, response.context, function(error, result){
 

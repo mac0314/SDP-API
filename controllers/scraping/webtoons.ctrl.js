@@ -42,7 +42,6 @@ exports.requestData = function (typeName, queryName, callback){
         thumbnails[i] = $(this).children('div').children().find("img").attr("src");
         links[i] = "http://comic.naver.com" + $(this).children('dl').children().find("a").attr("href");
       });
-      console.log(thumbnails.join[0]);
 
       var idx = Math.floor(Math.random() * titles.length);
 

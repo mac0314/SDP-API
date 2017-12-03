@@ -100,6 +100,7 @@ exports.getWatsonFlag = function(userKey, callback){
   });
 };
 
+// writer, title, answer
 exports.setDialogType = function(userKey, type){
   console.log("setDialogType");
   var key = userKey + "/watson/type";
@@ -110,12 +111,12 @@ exports.setDialogType = function(userKey, type){
   });
 };
 
-
-exports.getDialogType = function(userKey){
+// writers, titles, answers
+exports.getDialogType = function(userKey, callback){
   console.log("getDialogType");
   var key = userKey + "/watson/type";
 
   redisClient.get(key, function(error, value){
-    return value;
+    callback(error, value);
   });
 };

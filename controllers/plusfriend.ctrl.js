@@ -49,7 +49,8 @@ exports.dialogize = function(userKey, type, content, callback){
 		response: function(callback){
 			console.log("response");
 			messageModel.getWatsonFlag(userKey, function(error, watsonFlag){
-				if(watsonFlag){
+				//console.log("watsonFlag : ", watsonFlag);
+				if(watsonFlag == "true"){
 					messageModel.loadDialogContext(userKey, function(error, context){
 						convController.getConversationResponse(userKey, textObject, context, function(error, data){
 							watsonData = data.output.text[0];
@@ -60,13 +61,23 @@ exports.dialogize = function(userKey, type, content, callback){
 						});
 					});
 				}else{
-					messageModel.setWatsonFlag(userKey, true);
+					messageModel.getDialogType(userKey, function(error, dialogType){
+						//console.log("dialogType : ", dialogType);
+
+						if(dialogType == "writers"){
+							watsonData = "webtoons/writers/" + content;
+						}else if(dialogType == "titles"){
+							watsonData = "webtoons/titles/" + content;
+						}
+
+						makeResponse(userKey, content, watsonData, function(error, resultObject){
+							callback(null, resultObject);
+						});
+					});
 
 					//watsonData = "webtoons/writers/" + content;
 
-					makeResponse(userKey, content, watsonData, function(error, resultObject){
-						callback(null, resultObject);
-					});
+
 				}
 			});
 		}
@@ -87,77 +98,119 @@ function makeResponse(userKey, content, text, callback){
 	var messageObject = new Object({});
 	var keyboardObject = new Object({});
 
-	console.log(content, text);
+	//console.log(content, text);
 
 	if(text.indexOf("webtoons/") !== -1){
 		var textArray = text.split("/");
 		var typeName = textArray[1];
-		var queryName = textArray[2];
+		var queryName = textArray[2].trim();
+
+		//console.log(textArray);
 
 		if(typeName == "titles"){
 			messageModel.setWatsonFlag(userKey, false);
 
-			webtoonModel.loadWebtoonByWriter(queryName, function(error, webtoonObject){
-				var photoObject = new Object({});
+			messageModel.getDialogType(userKey, function(error, dialogType){
+				//console.log("dialogType :", dialogType);
+				if(dialogType == "titles"){
+					webtoonModel.loadWebtoonByTitle(queryName, function(error, webtoonObject){
+						//console.log(webtoonObject);
+						var photoObject = new Object({});
 
-				photoObject.url = webtoonObject.thumbnail;
-				photoObject.width = 320;
-				photoObject.height = 240;
+						photoObject.url = webtoonObject.thumbnail;
+						photoObject.width = 320;
+						photoObject.height = 240;
 
-				var buttonObject = new Object({});
+						var buttonObject = new Object({});
 
-				buttonObject.label = "링크";
-				buttonObject.url = webtoonObject.link;
+						buttonObject.label = "링크";
+						buttonObject.url = webtoonObject.link;
 
 
-				messageObject.text = webtoonObject.title + " 작품의 정보입니다!";
-				messageObject.photo = photoObject;
-				messageObject.message_button = buttonObject;
+						messageObject.text = webtoonObject.title + " 작품의 정보입니다!";
+						messageObject.photo = photoObject;
+						messageObject.message_button = buttonObject;
 
-				keyboardObject.type = "text";
+						keyboardObject.type = "text";
 
-				resultObject.message = messageObject;
-				resultObject.keyboard = keyboardObject;
+						resultObject.message = messageObject;
+						resultObject.keyboard = keyboardObject;
 
-				callback(null, resultObject);
-			});
-		}else if(typeName == "writers"){
-			
-			webtoonModel.loadWebtoonByWriter(queryName, function(error, webtoonObject){
-				console.log(webtoonObject);
-				console.log(isEmpty.isEmpty(webtoonObject));
-				if(isEmpty.isEmpty(webtoonObject)){
-					messageObject.text = "해당 작가는 리스트에 없네요..ㅎㅎ"
+						messageModel.setWatsonFlag(userKey, true);
+
+						callback(null, resultObject);
+					});
 				}else{
-					var photoObject = new Object({});
+					messageObject.text = "알고 싶은 작품 제목을 말씀해주세요!";
+					keyboardObject.type = "text";
 
-					photoObject.url = webtoonObject.thumbnail;
-					photoObject.width = 320;
-					photoObject.height = 240;
+					resultObject.message = messageObject;
+					resultObject.keyboard = keyboardObject;
 
-					var buttonObject = new Object({});
+					messageModel.setDialogType(userKey, "titles");
+					messageModel.setWatsonFlag(userKey, false);
 
-					buttonObject.label = "링크";
-					buttonObject.url = webtoonObject.link;
-
-
-					messageObject.text = webtoonObject.writer + " 작가님의 작품 '" + webtoonObject.title + "'를 추천해요!";
-					messageObject.photo = photoObject;
-					messageObject.message_button = buttonObject;
+					callback(null, resultObject);
 				}
-
-				keyboardObject.type = "text";
-
-				resultObject.message = messageObject;
-				resultObject.keyboard = keyboardObject;
-
-
-				messageModel.setWatsonFlag(userKey, false);
-
-				callback(null, resultObject);
 			});
+
+
+		}else if(typeName == "writers"){
+			messageModel.getDialogType(userKey, function(error, dialogType){
+				if(dialogType == "writers"){
+					webtoonModel.loadWebtoonByWriter(queryName, function(error, webtoonObject){
+						//console.log(webtoonObject);
+						//console.log(isEmpty.isEmpty(webtoonObject));
+						if(isEmpty.isEmpty(webtoonObject)){
+							messageObject.text = "해당 작가는 리스트에 없네요..ㅎㅎ"
+
+
+							messageModel.setWatsonFlag(userKey, false);
+						}else{
+							var photoObject = new Object({});
+
+							photoObject.url = webtoonObject.thumbnail;
+							photoObject.width = 320;
+							photoObject.height = 240;
+
+							var buttonObject = new Object({});
+
+							buttonObject.label = "링크";
+							buttonObject.url = webtoonObject.link;
+
+
+							messageObject.text = webtoonObject.writer + " 작가님의 작품 '" + webtoonObject.title + "'를 추천해요!";
+							messageObject.photo = photoObject;
+							messageObject.message_button = buttonObject;
+
+							messageModel.setWatsonFlag(userKey, true);
+						}
+
+						keyboardObject.type = "text";
+
+						resultObject.message = messageObject;
+						resultObject.keyboard = keyboardObject;
+
+						callback(null, resultObject);
+					});
+				}else{
+					messageObject.text = "작품을 추천받을 작가 이름을 말씀해주세요!";
+					keyboardObject.type = "text";
+
+					resultObject.message = messageObject;
+					resultObject.keyboard = keyboardObject;
+
+					messageModel.setDialogType(userKey, "writers");
+					messageModel.setWatsonFlag(userKey, false);
+
+					callback(null, resultObject);
+				}
+			});
+
+
 		}else{
 			messageModel.setWatsonFlag(userKey, true);
+			messageModel.setDialogType(userKey, "answers");
 
 			WTController.requestData(typeName, queryName, function(error, webtoonObject){
 				var photoObject = new Object({});
@@ -189,6 +242,10 @@ function makeResponse(userKey, content, text, callback){
 
 
 	}else{
+		messageModel.setWatsonFlag(userKey, true);
+		messageModel.setDialogType(userKey, "answers");
+
+
 		messageObject.text = text;
 
 		keyboardObject.type = "text";
@@ -227,6 +284,7 @@ exports.leaveChatRoom = function(userKey, callback){
 
 exports.initializeUser = function(userKey){
 	messageModel.setWatsonFlag(userKey, true);
+	messageModel.setDialogType(userKey, "answers");
 
 	return true;
 }
