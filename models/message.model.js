@@ -60,6 +60,7 @@ exports.addResponse = function(requestId, watsonData, response, callback){
   });
 };
 
+// Save watson conversation API context
 exports.saveDialogContext = function(userKey, contextObject, callback){
   console.log("saveDialogContext");
   var key = userKey + "/watson/context";
@@ -70,6 +71,7 @@ exports.saveDialogContext = function(userKey, contextObject, callback){
   });
 };
 
+// Load watson conversation API context
 exports.loadDialogContext = function(userKey, callback){
   console.log("loadDialogContext");
   var key = userKey + "/watson/context";
@@ -81,6 +83,9 @@ exports.loadDialogContext = function(userKey, callback){
   });
 };
 
+
+// If watson flag is "true", use watson conversation API.
+// If not, only request and response in this server.
 exports.setWatsonFlag = function(userKey, flag){
   console.log("setWatsonFlag");
   var key = userKey + "/watson/flag";
@@ -91,6 +96,8 @@ exports.setWatsonFlag = function(userKey, flag){
   });
 };
 
+// If watson flag is "true", use watson conversation API.
+// If not, only request and response in this server.
 exports.getWatsonFlag = function(userKey, callback){
   console.log("getWatsonFlag");
   var key = userKey + "/watson/flag";
