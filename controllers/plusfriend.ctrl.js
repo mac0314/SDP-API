@@ -39,6 +39,8 @@ exports.dialogize = function(userKey, type, content, callback){
 	var textObject = new Object({});
 	textObject.text = content;
 
+	var watsonData = "";
+
 	async.parallel({
 		requestDB: function(callback){
 			messageModel.addRequestMessage(userKey, type, content, function(error, data){
