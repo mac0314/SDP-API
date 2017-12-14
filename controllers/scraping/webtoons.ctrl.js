@@ -45,7 +45,7 @@ exports.requestData = function (typeName, queryName, callback){
           $('ul.img_list').children().each(function(i, elem){
             titles[i] = $(this).children('dl').children().find("a").attr("title");
             thumbnails[i] = $(this).children('div').children().find("img").attr("src");
-            links[i] = "http://comic.naver.com" + $(this).children('dl').children().find("a").attr("href");
+            links[i] = "http://m.comic.naver.com" + $(this).children('dl').children().find("a").attr("href");
           });
 
           var idx = Math.floor(Math.random() * titles.length);
@@ -98,7 +98,7 @@ exports.crawlingWebtoonData = function(callback){
 
           webtoonObject.title = $(this).children('div').children('a').children('img').attr('alt');
           webtoonObject.thumbnail = $(this).children('div').children('a').children('img').attr('src');
-          webtoonObject.link = "http://comic.naver.com" + $(this).children('div').children('a').attr('href');
+          webtoonObject.link = "http://m.comic.naver.com" + $(this).children('div').children('a').attr('href');
 
           webtoonList.push(webtoonObject);
         });
