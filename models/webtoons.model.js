@@ -4,6 +4,15 @@ var errorModel = require('./error.model');
 
 var queryModel = require('./query.model');
 
+
+var config = require('config.json')('./config/config.json');
+
+
+var redis = require("redis");
+var redisClient = redis.createClient(config.redis.port, config.redis.host);
+//redisClient.auth(config.redis.password);
+
+
 exports.loadWebtoonByWriter = function(writerName, callback){
   console.log("loadWritersWebtoon");
 
@@ -51,3 +60,48 @@ exports.removeChatRoom = function(userKey, callback){
     callback(error, resultObject);
   });
 };
+
+// writer, title, answer
+exports.setWebtoonQueryData = function(typeName, queryName, webtoonObject){
+  console.log("setWebtoonQueryData");
+  var today = getTodayDate();
+
+  var key = today + "/webtoon/" + typeName + "/" + queryName;
+  var value = JSON.stringify(webtoonObject);
+
+  redisClient.set(key, value, function(error, result){
+    return ;
+  });
+};
+
+// writer, title, answer
+exports.getWebtoonQueryData = function(typeName, queryName, callback){
+  console.log("getWebtoonQueryData");
+  var today = getTodayDate();
+
+  var key = today + "/webtoon/" + typeName + "/" + queryName;
+
+  redisClient.get(key, function(error, result){
+    callback(null, JSON.parse(result));
+  });
+};
+
+function getTodayDate() {
+  var today = new Date();
+
+  var dd = today.getDate();
+  var mm = today.getMonth() + 1; //January is 0!
+  var yyyy = today.getFullYear();
+
+  if(dd < 10) {
+      dd = '0' + dd;
+  }
+
+  if(mm < 10) {
+      mm = '0' + mm;
+  }
+
+  today = yyyy + '-' + mm + '-' + dd;
+
+  return today;
+}

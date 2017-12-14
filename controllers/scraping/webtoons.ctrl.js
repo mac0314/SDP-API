@@ -4,7 +4,8 @@ var cheerio = require('cheerio');
 
 var urlencode = require('urlencode');
 
-var WTModel = require('../../models/scraping.model');
+var SCModel = require('../../models/scraping.model');
+var WTModel = require('../../models/webtoons.model');
 
 
 exports.requestData = function (typeName, queryName, callback){
@@ -30,26 +31,49 @@ exports.requestData = function (typeName, queryName, callback){
 
   //console.log(url);
 
-  request(url, function (error, response, html) {
-      var $ = cheerio.load(html);
+  WTModel.getWebtoonQueryData(typeName, queryName, function(error, webtoonObject){
+    //console.log(webtoonObject);
+    if(webtoonObject === null){
+      console.log("scraping");
+      request(url, function (error, response, html) {
+          var $ = cheerio.load(html);
 
-      const titles = [];
-      const links = [];
-      const thumbnails = [];
+          const titles = [];
+          const links = [];
+          const thumbnails = [];
 
-      $('ul.img_list').children().each(function(i, elem){
-        titles[i] = $(this).children('dl').children().find("a").attr("title");
-        thumbnails[i] = $(this).children('div').children().find("img").attr("src");
-        links[i] = "http://comic.naver.com" + $(this).children('dl').children().find("a").attr("href");
+          $('ul.img_list').children().each(function(i, elem){
+            titles[i] = $(this).children('dl').children().find("a").attr("title");
+            thumbnails[i] = $(this).children('div').children().find("img").attr("src");
+            links[i] = "http://comic.naver.com" + $(this).children('dl').children().find("a").attr("href");
+          });
+
+          var idx = Math.floor(Math.random() * titles.length);
+
+          resultObject.title = titles[idx];
+          resultObject.thumbnail = thumbnails[idx];
+          resultObject.link = links[idx];
+
+          var webtoonObject = new Object({});
+
+          webtoonObject.titles = titles;
+          webtoonObject.links = links;
+          webtoonObject.thumbnails = thumbnails;
+
+          WTModel.setWebtoonQueryData(typeName, queryName, webtoonObject);
+
+          callback(null, resultObject);
       });
+    }else{
+      console.log("getData");
+      var idx = Math.floor(Math.random() * webtoonObject.titles.length);
 
-      var idx = Math.floor(Math.random() * titles.length);
-
-      resultObject.title = titles[idx];
-      resultObject.thumbnail = thumbnails[idx];
-      resultObject.link = links[idx];
+      resultObject.title = webtoonObject.titles[idx];
+      resultObject.thumbnail = webtoonObject.thumbnails[idx];
+      resultObject.link = webtoonObject.links[idx];
 
       callback(null, resultObject);
+    }
   });
 };
 
@@ -87,7 +111,7 @@ exports.crawlingWebtoonData = function(callback){
 
       resultObject.dataList = dataList;
 
-      WTModel.addWebtoondata(resultObject, function(error, resultObject){
+      SCModel.addWebtoondata(resultObject, function(error, resultObject){
         callback(null, resultObject);
       });
 
